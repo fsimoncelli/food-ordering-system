@@ -15,19 +15,20 @@ spring:
   jpa:
     open-in-view: false
     show-sql: true
-    database-platform: org.hibernate.dialect.PostgreSQL9Dialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQL9Dialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
   datasource:
     url: jdbc:postgresql://localhost:5432/postgres?currentSchema=restaurant&binaryTransfer=true&reWriteBatchedInserts=true&stringtype=unspecified
     username: postgres
     password: admin
     driver-class-name: org.postgresql.Driver
     platform: postgres
-    schema: classpath:init-schema.sql
-    data: classpath:init-data.sql
-    initialization-mode: always
+  sql:
+    init:
+      mode: ALWAYS
+      schema-locations: classpath:init-schema.sql,classpath:init-data.sql
 
 kafka-config:
   bootstrap-servers: localhost:19092, localhost:29092, localhost:39092
@@ -39,7 +40,7 @@ kafka-config:
 kafka-producer-config:
   key-serializer-class: org.apache.kafka.common.serialization.StringSerializer
   value-serializer-class: io.confluent.kafka.serializers.KafkaAvroSerializer
-  compression-type: none
+  compression-type: snappy
   acks: all
   batch-size: 16384
   batch-size-boost-factor: 100
