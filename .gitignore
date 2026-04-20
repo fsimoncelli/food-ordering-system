@@ -23,6 +23,7 @@ volumes/
 *.iws
 *.iml
 *.ipr
+**/.idea/compiler.xml
 
 ### NetBeans ###
 /nbproject/private/
