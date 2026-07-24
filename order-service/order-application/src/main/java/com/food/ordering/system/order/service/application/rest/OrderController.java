@@ -5,7 +5,10 @@ import com.food.ordering.system.order.service.domain.dto.create.CreateOrderRespo
 import com.food.ordering.system.order.service.domain.dto.track.TrackOrderQuery;
 import com.food.ordering.system.order.service.domain.dto.track.TrackOrderResponse;
 import com.food.ordering.system.order.service.domain.ports.input.service.OrderApplicationService;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,9 +20,13 @@ import java.util.UUID;
 public class OrderController {
 
     private final OrderApplicationService orderApplicationService;
+    private final Counter ordersCreatedCounter;
 
-    public OrderController(OrderApplicationService orderApplicationService) {
+    public OrderController(OrderApplicationService orderApplicationService, MeterRegistry meterRegistry) {
         this.orderApplicationService = orderApplicationService;
+        this.ordersCreatedCounter = Counter.builder("orders.created")
+                .description("Total number of orders created")
+                .register(meterRegistry);
     }
 
     @PostMapping
@@ -27,7 +34,13 @@ public class OrderController {
         log.info("Creating order for customer: {} at restaurant: {}", createOrderCommand.getCustomerId(),
                 createOrderCommand.getRestaurantId());
         CreateOrderResponse createOrderResponse = orderApplicationService.createOrder(createOrderCommand);
-        log.info("Order created with tracking id: {}", createOrderResponse.getOrderTrackingId());
+        ordersCreatedCounter.increment();
+        try {
+            MDC.put("trackingId", createOrderResponse.getOrderTrackingId().toString());
+            log.info("Order created with tracking id: {}", createOrderResponse.getOrderTrackingId());
+        } finally {
+            MDC.remove("trackingId");
+        }
         return ResponseEntity.ok(createOrderResponse);
     }
 

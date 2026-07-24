@@ -1,9 +1,29 @@
 server:
   port: 8181
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus, metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: always
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
 logging:
   level:
-    com.food.ordering.system: DEBUG
+    com.food.ordering.system: INFO
+    org.hibernate.SQL: WARN
+    org.hibernate.orm.jdbc.bind: WARN
 
 order-service:
   payment-request-topic-name: payment-request
@@ -15,9 +35,11 @@ order-service:
   outbox-scheduler-initial-delay: 10000
 
 spring:
+  application:
+    name: order-service
   jpa:
     open-in-view: false
-    show-sql: true
+    show-sql: false
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     properties:
       hibernate:
